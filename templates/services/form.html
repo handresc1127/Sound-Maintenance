@@ -1,0 +1,453 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ 'Editar Servicio' if service else 'Nuevo Servicio' }} - Servicios - Soundlab{% endblock %}
+
+{% block breadcrumbs %}
+    {{ super() }}
+    <li class="breadcrumb-item"><a href="{{ url_for('services') }}" class="text-soundlab-fuschia">Servicios</a></li>
+    <li class="breadcrumb-item active">{{ 'Editar Servicio' if service else 'Nuevo Servicio' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-{{ 'edit' if service else 'plus' }} me-2"></i>
+                    {{ 'Editar Orden de Servicio' if service else 'Nueva Orden de Servicio' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('service_create') if not service else url_for('service_update', id=service.id) }}" 
+                      id="service-form" class="needs-validation" novalidate>
+                    
+                    <!-- Equipment Information -->
+                    <div class="card bg-soundlab-purple border-soundlab-fuschia mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-cog me-2 text-soundlab-fuschia"></i>Información del Equipo
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="equipment_type" class="form-label">Tipo de Equipo *</label>
+                                    <select class="form-select" id="equipment_type" name="equipment_type" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="consolas" {{ 'selected' if service and service.equipment_type == 'consolas' else '' }}>Consolas DJ</option>
+                                        <option value="controladores" {{ 'selected' if service and service.equipment_type == 'controladores' else '' }}>Controladores</option>
+                                        <option value="luces" {{ 'selected' if service and service.equipment_type == 'luces' else '' }}>Luces</option>
+                                        <option value="sonido" {{ 'selected' if service and service.equipment_type == 'sonido' else '' }}>Sonido</option>
+                                        <option value="humo" {{ 'selected' if service and service.equipment_type == 'humo' else '' }}>Humo</option>
+                                        <option value="otro" {{ 'selected' if service and service.equipment_type == 'otro' else '' }}>Otro</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione el tipo de equipo.
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="equipment_name" class="form-label">Nombre del Equipo *</label>
+                                    <input type="text" class="form-control" id="equipment_name" name="equipment_name" 
+                                           value="{{ service.equipment_name if service and service.equipment_name else '' }}" required
+                                           placeholder="Ej: Pioneer DDJ-SX3, Controlador DJ">
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese el nombre del equipo.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="equipment_brand" class="form-label">Marca</label>
+                                    <input type="text" class="form-control" id="equipment_brand" name="equipment_brand" 
+                                           value="{{ service.equipment_brand if service and service.equipment_brand else '' }}"
+                                           placeholder="Ej: Pioneer, Behringer, etc.">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="equipment_model" class="form-label">Modelo</label>
+                                    <input type="text" class="form-control" id="equipment_model" name="equipment_model" 
+                                           value="{{ service.equipment_model if service and service.equipment_model else '' }}"
+                                           placeholder="Modelo específico">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="equipment_serial" class="form-label">Número de Serie</label>
+                                    <input type="text" class="form-control" id="equipment_serial" name="equipment_serial" 
+                                           value="{{ service.equipment_serial if service and service.equipment_serial else '' }}"
+                                           placeholder="Serial del equipo">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="equipment_color" class="form-label">Color</label>
+                                    <input type="text" class="form-control" id="equipment_color" name="equipment_color" 
+                                           value="{{ service.equipment_color if service and service.equipment_color else '' }}"
+                                           placeholder="Color del equipo">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="accessories" class="form-label">Accesorios Incluidos</label>
+                                    <input type="text" class="form-control" id="accessories" name="accessories" 
+                                           value="{{ service.accessories if service and service.accessories else '' }}"
+                                           placeholder="Cables, fundas, manuales, etc.">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="equipment_condition" class="form-label">Estado Visual del Equipo al Recibir</label>
+                                    <textarea class="form-control" id="equipment_condition" name="equipment_condition" 
+                                              rows="2" 
+                                              placeholder="Describa el estado visual del equipo (rayones, golpes, desgaste, etc.)">{{ service.equipment_condition if service and service.equipment_condition else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photo Documentation -->
+                    <div class="card bg-soundlab-purple border-soundlab-fuschia mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-camera me-2 text-soundlab-fuschia"></i>Evidencias Fotográficas
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="photo_input" class="form-label">Tomar/Subir Fotos del Equipo</label>
+                                    <input type="file" class="form-control" id="photo_input" name="photos[]" 
+                                           accept="image/*" multiple capture="camera">
+                                    <small class="text-muted">
+                                        Puede tomar múltiples fotos del estado del equipo al recibirlo. 
+                                        Formatos: JPG, PNG, WebP (máximo 5MB por foto)
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <!-- Photo Preview Area -->
+                            <div id="photo-preview-container" class="row">
+                                {% if service and service.evidences %}
+                                    {% for evidence in service.evidences %}
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card bg-black border-secondary">
+                                            <img src="/uploads/{{ evidence.filename }}" class="card-img-top" 
+                                                 style="height: 150px; object-fit: cover;" 
+                                                 alt="Evidencia {{ evidence.evidence_type }}">>
+                                            <div class="card-body p-2">
+                                                <small class="text-muted">{{ evidence.evidence_type|title }}</small>
+                                                <p class="small mb-1">{{ evidence.description or 'Sin descripción' }}</p>
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                        onclick="removePhoto('{{ evidence.id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Camera Button -->
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <button type="button" class="btn btn-outline-info me-2" id="camera-btn">
+                                        <i class="fas fa-camera me-1"></i>Tomar Foto con Cámara
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="gallery-btn">
+                                        <i class="fas fa-images me-1"></i>Seleccionar desde Galería
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Service Information -->
+                    <div class="card bg-soundlab-purple border-soundlab-fuschia mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-user-cog me-2 text-soundlab-fuschia"></i>Información del Servicio
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="customer_id" class="form-label">Cliente *</label>
+                                    <select class="form-select" id="customer_id" name="customer_id" required>
+                                        <option value="">Seleccionar cliente...</option>
+                                        {% if customers %}
+                                            {% for customer in customers %}
+                                            <option value="{{ customer.id }}" {{ 'selected' if service and service.customer_id == customer.id else '' }}>
+                                                {{ customer.name }} - {{ customer.phone if customer.phone else 'Sin teléfono' }}
+                                            </option>
+                                            {% endfor %}
+                                        {% else %}
+                                            <option value="">No hay clientes registrados</option>
+                                        {% endif %}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione un cliente.
+                                    </div>
+                                    <small class="text-muted">
+                                        <a href="{{ url_for('customer_new') }}" target="_blank" class="text-soundlab-fuschia">
+                                            <i class="fas fa-plus me-1"></i>Agregar nuevo cliente
+                                        </a>
+                                    </small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="service_type" class="form-label">Tipo de Servicio *</label>
+                                    <select class="form-select" id="service_type" name="service_type" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="mantenimiento" {{ 'selected' if service and service.service_type == 'mantenimiento' else '' }}>Mantenimiento</option>
+                                        <option value="reparacion" {{ 'selected' if service and service.service_type == 'reparacion' else '' }}>Reparación</option>
+                                        <option value="revision" {{ 'selected' if service and service.service_type == 'revision' else '' }}>Revisión</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione el tipo de servicio.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="estimated_cost" class="form-label">Costo Estimado</label>
+                                    <input type="number" class="form-control" id="estimated_cost" name="estimated_cost" 
+                                           value="{{ service.estimated_cost if service and service.estimated_cost else '' }}" 
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="estimated_days" class="form-label">Días Estimados</label>
+                                    <input type="number" class="form-control" id="estimated_days" name="estimated_days" 
+                                           value="{{ service.estimated_days if service and service.estimated_days else '3' }}" 
+                                           min="1" max="30" placeholder="3">
+                                    <small class="text-muted">Tiempo estimado para completar el servicio</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="description" class="form-label">Descripción del Problema *</label>
+                                    <textarea class="form-control" id="description" name="description" 
+                                              rows="4" required 
+                                              placeholder="Describa detalladamente el problema reportado por el cliente">{{ service.description if service else '' }}</textarea>
+                                    <div class="invalid-feedback">
+                                        Por favor describa el problema.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Service Status (only for editing) -->
+                    {% if service %}
+                    <div class="card bg-soundlab-purple border-soundlab-fuschia mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-tasks me-2 text-soundlab-fuschia"></i>Estado del Servicio
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="status" class="form-label">Estado Actual</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="Recibido" {{ 'selected' if service.status == 'Recibido' else '' }}>Recibido</option>
+                                        <option value="En proceso" {{ 'selected' if service.status == 'En proceso' else '' }}>En proceso</option>
+                                        <option value="Completado" {{ 'selected' if service.status == 'Completado' else '' }}>Completado</option>
+                                        <option value="Entregado" {{ 'selected' if service.status == 'Entregado' else '' }}>Entregado</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="final_cost" class="form-label">Costo Final</label>
+                                    <input type="number" class="form-control" id="final_cost" name="final_cost" 
+                                           value="{{ service.final_cost if service and service.final_cost else '' }}" 
+                                           min="0" step="0.01">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="diagnosis" class="form-label">Diagnóstico Técnico</label>
+                                    <textarea class="form-control" id="diagnosis" name="diagnosis" 
+                                              rows="3" 
+                                              placeholder="Diagnóstico detallado del problema encontrado">{{ service.diagnosis if service and service.diagnosis else '' }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="solution" class="form-label">Trabajo Realizado</label>
+                                    <textarea class="form-control" id="solution" name="solution" 
+                                              rows="3" 
+                                              placeholder="Descripción del trabajo realizado o solución aplicada">{{ service.work_performed if service and service.work_performed else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('services') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancelar
+                        </a>
+                        <div>
+                            {% if service %}
+                            <a href="{{ url_for('service_print', id=service.id) }}" class="btn btn-outline-info me-2" target="_blank">
+                                <i class="fas fa-print me-1"></i>Imprimir
+                            </a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-soundlab-fuschia">
+                                <i class="fas fa-save me-1"></i>
+                                {{ 'Actualizar Servicio' if service else 'Crear Servicio' }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card bg-soundlab-purple border-soundlab-fuschia mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-lightbulb me-2 text-soundlab-fuschia"></i>Tipos de Servicios
+                </h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <ul class="mb-0 small">
+                            <li><strong>Mantenimiento:</strong> Limpieza y mantenimiento preventivo</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="mb-0 small">
+                            <li><strong>Reparación:</strong> Solución de problemas específicos</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="mb-0 small">
+                            <li><strong>Revisión:</strong> Inspección y diagnóstico técnico</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Form validation
+    $('#service-form').on('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        $(this).addClass('was-validated');
+    });
+
+    // Status change handler
+    $('#status').on('change', function() {
+        var status = $(this).val();
+        
+        if (status === 'Completado' || status === 'Entregado') {
+            $('#diagnosis, #solution').attr('required', true);
+            if (status === 'Entregado') {
+                $('#final_cost').attr('required', true);
+            }
+        } else {
+            $('#diagnosis, #solution, #final_cost').removeAttr('required');
+        }
+    });
+
+    // Photo handling functionality
+    var photoFiles = [];
+    
+    // Handle file input change
+    $('#photo_input').on('change', function(e) {
+        var files = Array.from(e.target.files);
+        handlePhotoFiles(files);
+    });
+
+    // Camera button functionality
+    $('#camera-btn').on('click', function() {
+        $('#photo_input').attr('capture', 'camera').click();
+    });
+
+    // Gallery button functionality
+    $('#gallery-btn').on('click', function() {
+        $('#photo_input').removeAttr('capture').click();
+    });
+
+    function handlePhotoFiles(files) {
+        files.forEach(function(file) {
+            if (file && file.type.startsWith('image/')) {
+                photoFiles.push(file);
+                displayPhotoPreview(file);
+            }
+        });
+        updateFileInput();
+    }
+
+    function displayPhotoPreview(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            var previewHtml = `
+                <div class="col-md-3 mb-3" id="${photoId}">
+                    <div class="card bg-black border-secondary">
+                        <img src="${e.target.result}" class="card-img-top" 
+                             style="height: 150px; object-fit: cover;" 
+                             alt="Vista previa">
+                        <div class="card-body p-2">
+                            <small class="text-muted">Nueva foto</small>
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-1" 
+                                    onclick="removePhotoPreview('${photoId}', '${file.name}')">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#photo-preview-container').append(previewHtml);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function updateFileInput() {
+        var dt = new DataTransfer();
+        photoFiles.forEach(function(file) {
+            dt.items.add(file);
+        });
+        $('#photo_input')[0].files = dt.files;
+    }
+
+    // Make removePhotoPreview global
+    window.removePhotoPreview = function(photoId, fileName) {
+        $('#' + photoId).remove();
+        photoFiles = photoFiles.filter(function(file) {
+            return file.name !== fileName;
+        });
+        updateFileInput();
+    };
+
+    // Handle existing photo removal
+    window.removePhoto = function(evidenceId) {
+        if (confirm('¿Está seguro de que desea eliminar esta foto?')) {
+            // Here you would make an AJAX call to delete the photo from the server
+            // For now, just hide the photo
+            $('[onclick*="' + evidenceId + '"]').closest('.col-md-3').fadeOut();
+        }
+    };
+});
+</script>
+{% endblock %}

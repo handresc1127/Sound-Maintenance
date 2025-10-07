@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ 'Editar Item' if item else 'Nuevo Item' }} - Inventario - Soundlab{% endblock %}
+
+{% block breadcrumbs %}
+    {{ super() }}
+    <li class="breadcrumb-item"><a href="{{ url_for('inventory') }}" class="text-soundlab-fuschia">Inventario</a></li>
+    <li class="breadcrumb-item active">{{ 'Editar Item' if item else 'Nuevo Item' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-{{ 'edit' if item else 'plus' }} me-2"></i>
+                    {{ 'Editar Item de Inventario' if item else 'Nuevo Item de Inventario' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inventory_create') if not item else url_for('inventory_update', id=item.id) }}" 
+                      id="inventory-form" class="needs-validation" novalidate>
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="name" class="form-label">
+                                <i class="fas fa-box me-1 text-soundlab-fuschia"></i>Nombre del Producto *
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ item.name if item else '' }}" required>
+                            <div class="invalid-feedback">
+                                Por favor ingrese el nombre del producto.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="category" class="form-label">
+                                <i class="fas fa-tags me-1 text-soundlab-fuschia"></i>Categoría *
+                            </label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="repuestos" {{ 'selected' if item and item.category == 'repuestos' else '' }}>Repuestos</option>
+                                <option value="cables" {{ 'selected' if item and item.category == 'cables' else '' }}>Cables</option>
+                                <option value="conectores" {{ 'selected' if item and item.category == 'conectores' else '' }}>Conectores</option>
+                                <option value="accesorios" {{ 'selected' if item and item.category == 'accesorios' else '' }}>Accesorios</option>
+                                <option value="herramientas" {{ 'selected' if item and item.category == 'herramientas' else '' }}>Herramientas</option>
+                                <option value="consumibles" {{ 'selected' if item and item.category == 'consumibles' else '' }}>Consumibles</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Por favor seleccione una categoría.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="brand" class="form-label">
+                                <i class="fas fa-tag me-1 text-soundlab-fuschia"></i>Marca
+                            </label>
+                            <input type="text" class="form-control" id="brand" name="brand" 
+                                   value="{{ item.brand if item and item.brand else '' }}"
+                                   placeholder="Ej: Pioneer, Behringer, etc.">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="model" class="form-label">
+                                <i class="fas fa-barcode me-1 text-soundlab-fuschia"></i>Modelo
+                            </label>
+                            <input type="text" class="form-control" id="model" name="model" 
+                                   value="{{ item.model if item and item.model else '' }}"
+                                   placeholder="Modelo específico">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-align-left me-1 text-soundlab-fuschia"></i>Descripción
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="2" 
+                                      placeholder="Descripción detallada del producto">{{ item.description if item and item.description else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="stock" class="form-label">
+                                <i class="fas fa-cubes me-1 text-soundlab-fuschia"></i>Stock Actual *
+                            </label>
+                            <input type="number" class="form-control" id="stock" name="stock" 
+                                   value="{{ item.stock if item else '0' }}" min="0" required>
+                            <div class="invalid-feedback">
+                                Ingrese una cantidad válida.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label for="min_stock" class="form-label">
+                                <i class="fas fa-exclamation-triangle me-1 text-warning"></i>Stock Mínimo *
+                            </label>
+                            <input type="number" class="form-control" id="min_stock" name="min_stock" 
+                                   value="{{ item.min_stock if item else '5' }}" min="1" required>
+                            <div class="invalid-feedback">
+                                Ingrese un stock mínimo válido.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label for="price" class="form-label">
+                                <i class="fas fa-dollar-sign me-1 text-success"></i>Precio Unitario
+                            </label>
+                            <input type="number" class="form-control" id="price" name="price" 
+                                   value="{{ item.price if item and item.price else '' }}" 
+                                   min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label for="location" class="form-label">
+                                <i class="fas fa-map-marker-alt me-1 text-info"></i>Ubicación
+                            </label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ item.location if item and item.location else '' }}"
+                                   placeholder="Ej: Estante A-3">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <label for="supplier" class="form-label">
+                                <i class="fas fa-truck me-1 text-soundlab-fuschia"></i>Proveedor
+                            </label>
+                            <input type="text" class="form-control" id="supplier" name="supplier" 
+                                   value="{{ item.supplier if item and item.supplier else '' }}"
+                                   placeholder="Nombre del proveedor o distribuidor">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('inventory') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-soundlab-fuschia">
+                            <i class="fas fa-save me-1"></i>
+                            {{ 'Actualizar Item' if item else 'Crear Item' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card bg-soundlab-purple border-soundlab-fuschia mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-lightbulb me-2 text-soundlab-fuschia"></i>Guía de Categorías
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0 small">
+                            <li><strong>Repuestos:</strong> Partes de equipos (faders, botones, pantallas)</li>
+                            <li><strong>Cables:</strong> Audio, power, USB, MIDI</li>
+                            <li><strong>Conectores:</strong> XLR, RCA, Jack, adaptadores</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0 small">
+                            <li><strong>Accesorios:</strong> Fundas, soportes, foam</li>
+                            <li><strong>Herramientas:</strong> Destornilladores, soldadores</li>
+                            <li><strong>Consumibles:</strong> Soldadura, limpiadores, etc.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

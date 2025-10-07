@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden de Servicio #{{ service.id }} - Soundlab</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background: white;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #7c3aed;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #7c3aed;
+            margin: 0;
+        }
+        .company-subtitle {
+            font-size: 14px;
+            color: #ec4899;
+            margin: 5px 0 0 0;
+        }
+        .service-number {
+            font-size: 20px;
+            margin: 15px 0;
+            color: #333;
+        }
+        .info-section {
+            margin-bottom: 25px;
+        }
+        .info-title {
+            background: #7c3aed;
+            color: white;
+            padding: 8px 15px;
+            margin: 0 0 15px 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .info-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+        .info-table td:first-child {
+            background: #f8f9fa;
+            font-weight: bold;
+            width: 200px;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-recibido { background: #dbeafe; color: #1e40af; }
+        .status-proceso { background: #fef3c7; color: #d97706; }
+        .status-completado { background: #dcfce7; color: #16a34a; }
+        .status-entregado { background: #e0e7ff; color: #4338ca; }
+        
+        .description-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            background: #f8f9fa;
+            margin: 10px 0;
+            min-height: 60px;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .signature-section {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            padding-top: 5px;
+            font-size: 12px;
+        }
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="company-name">SOUNDLAB</h1>
+        <p class="company-subtitle">La Casa del DJ</p>
+        <h2 class="service-number">ORDEN DE SERVICIO #{{ service.id }}</h2>
+    </div>
+
+    <div class="info-section">
+        <h3 class="info-title">INFORMACIÓN GENERAL</h3>
+        <table class="info-table">
+            <tr>
+                <td>Fecha de Recepción:</td>
+                <td>{{ service.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+            </tr>
+            <tr>
+                <td>Estado:</td>
+                <td>
+                    <span class="status-badge status-{{ service.status.lower().replace(' ', '-').replace('é', 'e') }}">
+                        {{ service.status }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>Tipo de Servicio:</td>
+                <td>{{ service.service_type|title }}</td>
+            </tr>
+            <tr>
+                <td>Cliente ID:</td>
+                <td>{{ service.customer_id }}</td>
+            </tr>
+            <tr>
+                <td>Equipo ID:</td>
+                <td>{{ service.equipment_id }}</td>
+            </tr>
+            <tr>
+                <td>Técnico Asignado:</td>
+                <td>{{ service.technician_id }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="info-section">
+        <h3 class="info-title">DESCRIPCIÓN DEL PROBLEMA</h3>
+        <div class="description-box">
+            {{ service.description }}
+        </div>
+    </div>
+
+    {% if service.diagnosis %}
+    <div class="info-section">
+        <h3 class="info-title">DIAGNÓSTICO TÉCNICO</h3>
+        <div class="description-box">
+            {{ service.diagnosis }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if service.work_performed %}
+    <div class="info-section">
+        <h3 class="info-title">TRABAJO REALIZADO</h3>
+        <div class="description-box">
+            {{ service.work_performed }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="info-section">
+        <h3 class="info-title">COSTOS</h3>
+        <table class="info-table">
+            <tr>
+                <td>Costo Estimado:</td>
+                <td>
+                    {% if service.estimated_cost %}
+                        ${{ "%.2f"|format(service.estimated_cost) }}
+                    {% else %}
+                        Por definir
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Costo Final:</td>
+                <td>
+                    {% if service.final_cost %}
+                        <strong>${{ "%.2f"|format(service.final_cost) }}</strong>
+                    {% else %}
+                        Pendiente
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line">
+                Firma del Cliente
+            </div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">
+                Firma del Técnico
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>Soundlab - La Casa del DJ</strong></p>
+        <p>Servicio técnico especializado en equipos de DJ y espectáculos</p>
+        <p>Generado el {{ moment().format('%d/%m/%Y %H:%M') }}</p>
+    </div>
+
+    <script>
+        // Auto-print when loaded
+        window.onload = function() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
