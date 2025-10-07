@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+
+{% block title %}Perfil - Soundlab{% endblock %}
+
+{% block breadcrumbs %}
+    {{ super() }}
+    <li class="breadcrumb-item active">Mi Perfil</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card bg-black border-soundlab-fuschia mb-4">
+                    <div class="card-header bg-soundlab-purple">
+                        <h6 class="mb-0">
+                            <i class="fas fa-user me-2 text-soundlab-fuschia"></i>
+                            <strong>Información del Usuario</strong>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <strong class="text-soundlab-fuschia">Usuario:</strong>
+                            </div>
+                            <div class="col-8">
+                                {{ current_user.username }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <strong class="text-soundlab-fuschia">Email:</strong>
+                            </div>
+                            <div class="col-8">
+                                {{ current_user.email }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <strong class="text-soundlab-fuschia">Rol:</strong>
+                            </div>
+                            <div class="col-8">
+                                <span class="badge bg-soundlab-purple">
+                                    {{ current_user.role.title() }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <strong class="text-soundlab-fuschia">Estado:</strong>
+                            </div>
+                            <div class="col-8">
+                                <span class="badge {{ 'bg-success' if current_user.is_active else 'bg-danger' }}">
+                                    {{ 'Activo' if current_user.is_active else 'Inactivo' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row mb-0">
+                            <div class="col-4">
+                                <strong class="text-soundlab-fuschia">Creado:</strong>
+                            </div>
+                            <div class="col-8">
+                                {{ current_user.created_at.strftime('%d/%m/%Y %H:%M') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card bg-black border-soundlab-fuschia mb-4">
+                    <div class="card-header bg-soundlab-purple">
+                        <h6 class="mb-0">
+                            <i class="fas fa-key me-2 text-soundlab-fuschia"></i>
+                            <strong>Cambiar Contraseña</strong>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('profile') }}">
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Contraseña Actual *</label>
+                                <input type="password" name="current_password" id="current_password" 
+                                       class="form-control" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese su contraseña actual.
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">Nueva Contraseña *</label>
+                                <input type="password" name="new_password" id="new_password" 
+                                       class="form-control" required minlength="6">
+                                <small class="text-muted">Mínimo 6 caracteres</small>
+                                <div class="invalid-feedback">
+                                    La nueva contraseña debe tener al menos 6 caracteres.
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Confirmar Nueva Contraseña *</label>
+                                <input type="password" name="confirm_password" id="confirm_password" 
+                                       class="form-control" required>
+                                <div class="invalid-feedback">
+                                    Por favor confirme su nueva contraseña.
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-soundlab-fuschia">
+                                    <i class="fas fa-save me-1"></i>
+                                    Actualizar Contraseña
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Card -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-soundlab-purple border-soundlab-fuschia">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-bar me-2 text-soundlab-fuschia"></i>
+                            <strong>Estadísticas de Actividad</strong>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-tools fa-2x text-soundlab-fuschia mb-2"></i>
+                                    <h5 class="mb-1">{{ services_count }}</h5>
+                                    <small class="text-muted">Servicios Creados</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-clock fa-2x text-soundlab-fuschia mb-2"></i>
+                                    <h5 class="mb-1">{{ active_services_count }}</h5>
+                                    <small class="text-muted">Servicios Activos</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-check-circle fa-2x text-soundlab-fuschia mb-2"></i>
+                                    <h5 class="mb-1">{{ completed_services_count }}</h5>
+                                    <small class="text-muted">Servicios Completados</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-calendar fa-2x text-soundlab-fuschia mb-2"></i>
+                                    <h5 class="mb-1">{{ days_since_registration }}</h5>
+                                    <small class="text-muted">Días en el Sistema</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // Validación de contraseñas coincidentes
+    $('#confirm_password').on('input', function() {
+        var newPassword = $('#new_password').val();
+        var confirmPassword = $(this).val();
+        
+        if (newPassword !== confirmPassword) {
+            this.setCustomValidity('Las contraseñas no coinciden');
+            $(this).addClass('is-invalid');
+        } else {
+            this.setCustomValidity('');
+            $(this).removeClass('is-invalid');
+        }
+    });
+    
+    // Validación del formulario
+    $('form').on('submit', function(e) {
+        var newPassword = $('#new_password').val();
+        var confirmPassword = $('#confirm_password').val();
+        
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            $('#confirm_password').addClass('is-invalid');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

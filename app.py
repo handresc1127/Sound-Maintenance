@@ -223,6 +223,66 @@ def logout():
     flash('Sesión cerrada exitosamente', 'info')
     return redirect(url_for('login'))
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """Perfil del usuario"""
+    if request.method == 'POST':
+        current_password = request.form['current_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        
+        # Verificar contraseña actual
+        if not check_password_hash(current_user.password_hash, current_password):
+            flash('La contraseña actual es incorrecta', 'danger')
+            return redirect(url_for('profile'))
+        
+        # Verificar que las nuevas contraseñas coincidan
+        if new_password != confirm_password:
+            flash('Las nuevas contraseñas no coinciden', 'danger')
+            return redirect(url_for('profile'))
+        
+        # Verificar longitud mínima
+        if len(new_password) < 6:
+            flash('La nueva contraseña debe tener al menos 6 caracteres', 'danger')
+            return redirect(url_for('profile'))
+        
+        # Actualizar contraseña
+        try:
+            current_user.password_hash = generate_password_hash(new_password)
+            current_user.updated_at = datetime.now(CO_TZ)
+            db.session.commit()
+            flash('Contraseña actualizada exitosamente', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error al actualizar la contraseña', 'danger')
+        
+        return redirect(url_for('profile'))
+    
+    # Estadísticas del usuario
+    services_count = Service.query.filter_by(technician_id=current_user.id).count()
+    active_services_count = Service.query.filter_by(
+        technician_id=current_user.id, 
+        status='En proceso'
+    ).count()
+    completed_services_count = Service.query.filter_by(
+        technician_id=current_user.id, 
+        status='Completado'
+    ).count()
+    
+    # Días desde el registro
+    user_created_at = current_user.created_at
+    if user_created_at.tzinfo is None:
+        # Si la fecha está en naive datetime, asumimos que está en la zona horaria local
+        user_created_at = CO_TZ.localize(user_created_at)
+    days_since_registration = (datetime.now(CO_TZ) - user_created_at).days
+    
+    return render_template('auth/profile.html',
+                         services_count=services_count,
+                         active_services_count=active_services_count,
+                         completed_services_count=completed_services_count,
+                         days_since_registration=days_since_registration)
+
 # ========== GESTIÓN DE CLIENTES ==========
 
 @app.route('/customers')
@@ -263,6 +323,64 @@ def customer_create():
         db.session.rollback()
         flash('Error al crear cliente', 'danger')
         return redirect(url_for('customer_new'))
+
+@app.route('/customers/<int:customer_id>')
+@login_required
+def customer_view(customer_id):
+    """Ver detalles de un cliente"""
+    customer = Customer.query.get_or_404(customer_id)
+    # Obtener servicios del cliente
+    services = Service.query.filter_by(customer_id=customer_id).order_by(Service.created_at.desc()).all()
+    return render_template('customers/view.html', customer=customer, services=services)
+
+@app.route('/customers/<int:customer_id>/edit')
+@login_required
+def customer_edit(customer_id):
+    """Formulario para editar cliente"""
+    customer = Customer.query.get_or_404(customer_id)
+    return render_template('customers/form.html', customer=customer)
+
+@app.route('/customers/<int:customer_id>/update', methods=['POST'])
+@login_required
+def customer_update(customer_id):
+    """Actualizar cliente"""
+    customer = Customer.query.get_or_404(customer_id)
+    try:
+        customer.name = request.form['name']
+        customer.email = request.form.get('email')
+        customer.phone = request.form.get('phone')
+        customer.address = request.form.get('address')
+        customer.notes = request.form.get('notes')
+        customer.updated_at = datetime.now(CO_TZ)
+        db.session.commit()
+        flash('Cliente actualizado exitosamente', 'success')
+        return redirect(url_for('customer_view', customer_id=customer_id))
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al actualizar cliente', 'danger')
+        return redirect(url_for('customer_edit', customer_id=customer_id))
+
+@app.route('/customers/<int:customer_id>/delete', methods=['POST'])
+@login_required
+def customer_delete(customer_id):
+    """Eliminar cliente"""
+    customer = Customer.query.get_or_404(customer_id)
+    
+    # Verificar si el cliente tiene servicios asociados
+    services_count = Service.query.filter_by(customer_id=customer_id).count()
+    if services_count > 0:
+        flash(f'No se puede eliminar el cliente porque tiene {services_count} servicios asociados', 'warning')
+        return redirect(url_for('customers'))
+    
+    try:
+        db.session.delete(customer)
+        db.session.commit()
+        flash('Cliente eliminado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al eliminar cliente', 'danger')
+    
+    return redirect(url_for('customers'))
 
 # ========== GESTIÓN DE INVENTARIO ==========
 
@@ -344,6 +462,60 @@ def inventory_update(id):
         flash('Error al actualizar item', 'danger')
         return redirect(url_for('inventory_edit', id=id))
 
+@app.route('/inventory/<int:item_id>')
+@login_required
+def inventory_view(item_id):
+    """Ver detalles de un item de inventario"""
+    item = Inventory.query.get_or_404(item_id)
+    return render_template('inventory/view.html', item=item)
+
+@app.route('/inventory/<int:item_id>/delete', methods=['POST'])
+@login_required
+def inventory_delete(item_id):
+    """Eliminar item de inventario"""
+    item = Inventory.query.get_or_404(item_id)
+    
+    try:
+        db.session.delete(item)
+        db.session.commit()
+        flash('Item eliminado del inventario exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al eliminar item del inventario', 'danger')
+    
+    return redirect(url_for('inventory'))
+
+@app.route('/inventory/<int:item_id>/stock-movement', methods=['POST'])
+@login_required
+def inventory_stock_movement(item_id):
+    """Realizar movimiento de stock"""
+    item = Inventory.query.get_or_404(item_id)
+    
+    try:
+        movement_type = request.form['movement_type']  # 'entrada' o 'salida'
+        quantity = int(request.form['quantity'])
+        reason = request.form.get('reason', '')
+        
+        if movement_type == 'entrada':
+            item.stock += quantity
+            flash(f'Se agregaron {quantity} unidades al stock', 'success')
+        elif movement_type == 'salida':
+            if item.stock >= quantity:
+                item.stock -= quantity
+                flash(f'Se retiraron {quantity} unidades del stock', 'success')
+            else:
+                flash('No hay suficiente stock disponible', 'warning')
+                return redirect(url_for('inventory'))
+        
+        item.updated_at = datetime.now(CO_TZ)
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al realizar movimiento de stock', 'danger')
+    
+    return redirect(url_for('inventory'))
+
 # ========== GESTIÓN DE SERVICIOS ==========
 
 @app.route('/services')
@@ -402,6 +574,7 @@ def service_create():
         
         # Handle photo uploads
         uploaded_files = request.files.getlist('photos[]')
+        
         for file in uploaded_files:
             if file and file.filename != '':
                 filename = save_evidence_file(file, service.id)
@@ -444,23 +617,54 @@ def service_update(id):
     """Actualizar servicio"""
     try:
         service = Service.query.get_or_404(id)
+        
+        # Get equipment_id if selecting from existing equipment, otherwise None for manual entry
+        equipment_id = request.form.get('equipment_id')
+        if equipment_id == '':
+            equipment_id = None
+        
         service.customer_id = request.form['customer_id']
-        service.equipment_id = request.form['equipment_id']
+        service.equipment_id = equipment_id
         service.service_type = request.form['service_type']
         service.description = request.form['description']
         service.status = request.form.get('status', service.status)
         service.estimated_cost = float(request.form.get('estimated_cost', 0))
+        service.estimated_days = int(request.form.get('estimated_days', 3))
         service.final_cost = float(request.form['final_cost']) if request.form.get('final_cost') else None
         service.diagnosis = request.form.get('diagnosis')
         service.work_performed = request.form.get('solution')
+        
+        # Update manual equipment fields
+        service.equipment_type = request.form.get('equipment_type')
+        service.equipment_name = request.form.get('equipment_name')
+        service.equipment_brand = request.form.get('equipment_brand')
+        service.equipment_model = request.form.get('equipment_model')
+        service.equipment_serial = request.form.get('equipment_serial')
+        service.equipment_color = request.form.get('equipment_color')
+        service.equipment_accessories = request.form.get('equipment_accessories')
+        service.equipment_condition = request.form.get('equipment_condition')
         service.updated_at = datetime.now(CO_TZ)
+        
+        # Handle photo uploads
+        uploaded_files = request.files.getlist('photos[]')
+        for file in uploaded_files:
+            if file and file.filename != '':
+                filename = save_evidence_file(file, service.id)
+                if filename:
+                    evidence = ServiceEvidence(
+                        service_id=service.id,
+                        filename=filename,
+                        evidence_type='proceso',
+                        description='Foto actualizada del equipo'
+                    )
+                    db.session.add(evidence)
         
         db.session.commit()
         flash('Servicio actualizado exitosamente', 'success')
         return redirect(url_for('services'))
     except Exception as e:
         db.session.rollback()
-        flash('Error al actualizar servicio', 'danger')
+        flash(f'Error al actualizar servicio: {str(e)}', 'danger')
         return redirect(url_for('service_edit', id=id))
 
 @app.route('/services/<int:id>/details')
@@ -488,9 +692,10 @@ def uploaded_file(filename):
 
 def init_db():
     """Inicializar base de datos con datos por defecto"""
+    # Crear tablas solo si no existen
     db.create_all()
     
-    # Crear usuario administrador por defecto
+    # Crear usuario administrador por defecto solo si no existe
     if not User.query.filter_by(username='admin').first():
         admin = User(
             username='admin',
@@ -501,8 +706,28 @@ def init_db():
             created_at=datetime.now(CO_TZ)
         )
         db.session.add(admin)
-        db.session.commit()
-        print("Usuario administrador creado: admin / admin123")
+        
+        # Crear cliente genérico por defecto
+        generic_customer = Customer(
+            name='Cliente Genérico',
+            email=None,
+            phone=None,
+            address=None,
+            notes='Cliente por defecto para servicios sin cliente específico',
+            created_at=datetime.now(CO_TZ)
+        )
+        
+        db.session.add(generic_customer)
+        
+        try:
+            db.session.commit()
+            print("Sistema Sound-Maintenance inicializado por primera vez")
+            print("Usuario administrador: admin / admin123")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al inicializar datos: {e}")
+    else:
+        print("Sistema Sound-Maintenance iniciado correctamente")
 
 if __name__ == '__main__':
     with app.app_context():

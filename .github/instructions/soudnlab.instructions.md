@@ -92,6 +92,11 @@ Sound-Maintenance es un sistema completo de gestión para servicios de mantenimi
 - Código JavaScript organizado y modular
 - Validación del lado cliente complementaria a la del servidor
 - Implementar búsquedas y autocompletado cuando sea necesario
+- **HTML Semántico y Accesible**: Usar elementos HTML apropiados y semánticamente correctos
+- **IDs únicos**: Asignar IDs únicos y descriptivos a todos los elementos interactivos (formularios, botones, inputs, modales, etc.)
+- **Estructura HTML limpia**: Mantener HTML bien estructurado, indentado y comentado
+- **Atributos apropiados**: Usar atributos como `aria-label`, `placeholder`, `title` para mejorar accesibilidad
+- **Clases CSS consistentes**: Seguir convenciones de nomenclatura clara para clases CSS
 
 ## 🔧 Patrones de Arquitectura
 
@@ -160,6 +165,11 @@ Sound-Maintenance es un sistema completo de gestión para servicios de mantenimi
 - Campos requeridos marcados claramente
 - Autocompletado donde sea apropiado
 - Mensajes de error claros y útiles
+- **IDs únicos para elementos**: Cada input, select, textarea debe tener un ID único y descriptivo
+- **Labels apropiados**: Usar `<label for="element_id">` correctamente vinculados
+- **Estructura semántica**: Organizar formularios con fieldsets y legends cuando sea apropiado
+- **Atributos de validación**: Usar atributos HTML5 como `required`, `pattern`, `min`, `max`
+- **Estados de elementos**: Manejar estados como `disabled`, `readonly`, `checked` apropiadamente
 
 ## 📋 APIs y Estructura
 

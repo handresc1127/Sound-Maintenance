@@ -79,14 +79,14 @@
                                 <td>{{ customer.created_at.strftime('%d/%m/%Y') if customer.created_at else '' }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="#" class="btn btn-outline-info" title="Ver detalles">
+                                        <a href="{{ url_for('customer_view', customer_id=customer.id) }}" class="btn btn-outline-info" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="#" class="btn btn-outline-warning" title="Editar">
+                                        <a href="{{ url_for('customer_edit', customer_id=customer.id) }}" class="btn btn-outline-warning" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <button type="button" class="btn btn-outline-danger" title="Eliminar"
-                                                onclick="confirmDelete('¿Eliminar cliente {{ customer.name }}?')">
+                                                onclick="confirmDelete({{ customer.id }}, '{{ customer.name }}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -117,4 +117,46 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+<script>
+$(document).ready(function() {
+    // Verificar si DataTable ya está inicializada
+    if (!$.fn.DataTable.isDataTable('.datatable')) {
+        // Inicializar DataTable solo si no está ya inicializada
+        $('.datatable').DataTable({
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/Spanish.json'
+            },
+            columnDefs: [
+                { orderable: false, targets: 'no-sort' }
+            ],
+            pageLength: 25,
+            responsive: true,
+            destroy: true // Permitir re-inicialización si es necesario
+        });
+    }
+});
+
+function confirmDelete(customerId, customerName) {
+    if (confirm('¿Está seguro que desea eliminar el cliente "' + customerName + '"?\n\nEsta acción no se puede deshacer.')) {
+        // Crear formulario para enviar DELETE request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/customers/' + customerId + '/delete';
+        
+        // Agregar token CSRF si existe
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
 {% endblock %}

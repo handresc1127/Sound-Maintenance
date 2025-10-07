@@ -1,0 +1,224 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ customer.name }} - Clientes - Soundlab{% endblock %}
+
+{% block breadcrumbs %}
+    {{ super() }}
+    <li class="breadcrumb-item"><a href="{{ url_for('customers') }}">Clientes</a></li>
+    <li class="breadcrumb-item active">{{ customer.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-soundlab-fuschia">
+                    <i class="fas fa-user me-2"></i>{{ customer.name }}
+                </h1>
+                <p class="text-muted mb-0">Información detallada del cliente</p>
+            </div>
+            <div>
+                <a href="{{ url_for('customer_edit', customer_id=customer.id) }}" class="btn btn-soundlab-purple me-2">
+                    <i class="fas fa-edit me-1"></i>Editar Cliente
+                </a>
+                <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información del Cliente -->
+    <div class="col-lg-6 mb-4">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Información Personal
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>ID:</strong></div>
+                    <div class="col-sm-8">{{ customer.id }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Nombre:</strong></div>
+                    <div class="col-sm-8">{{ customer.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Email:</strong></div>
+                    <div class="col-sm-8">
+                        {% if customer.email %}
+                            <a href="mailto:{{ customer.email }}" class="text-soundlab-fuschia">
+                                {{ customer.email }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No registrado</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Teléfono:</strong></div>
+                    <div class="col-sm-8">
+                        {% if customer.phone %}
+                            <a href="tel:{{ customer.phone }}" class="text-soundlab-fuschia">
+                                {{ customer.phone }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No registrado</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Dirección:</strong></div>
+                    <div class="col-sm-8">
+                        {% if customer.address %}
+                            {{ customer.address }}
+                        {% else %}
+                            <span class="text-muted">No registrada</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if customer.notes %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Notas:</strong></div>
+                    <div class="col-sm-8">{{ customer.notes }}</div>
+                </div>
+                {% endif %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Registrado:</strong></div>
+                    <div class="col-sm-8">{{ customer.created_at.strftime('%d/%m/%Y %H:%M') if customer.created_at else '' }}</div>
+                </div>
+                {% if customer.updated_at %}
+                <div class="row mb-0">
+                    <div class="col-sm-4"><strong>Actualizado:</strong></div>
+                    <div class="col-sm-8">{{ customer.updated_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="col-lg-6 mb-4">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Estadísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="p-3 border border-soundlab-purple rounded">
+                            <h3 class="text-soundlab-fuschia mb-1">{{ services|length }}</h3>
+                            <small class="text-muted">Total Servicios</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="p-3 border border-soundlab-purple rounded">
+                            <h3 class="text-soundlab-fuschia mb-1">
+                                {{ services|selectattr('status', 'equalto', 'Pendiente')|list|length }}
+                            </h3>
+                            <small class="text-muted">Servicios Pendientes</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 border border-soundlab-purple rounded">
+                            <h3 class="text-soundlab-fuschia mb-1">
+                                {{ services|selectattr('status', 'equalto', 'En Progreso')|list|length }}
+                            </h3>
+                            <small class="text-muted">En Progreso</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 border border-soundlab-purple rounded">
+                            <h3 class="text-soundlab-fuschia mb-1">
+                                {{ services|selectattr('status', 'equalto', 'Completado')|list|length }}
+                            </h3>
+                            <small class="text-muted">Completados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Historial de Servicios -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Historial de Servicios
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if services %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Equipo</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th>Técnico</th>
+                                <th class="no-sort">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                            <tr>
+                                <td>{{ service.id }}</td>
+                                <td>{{ service.created_at.strftime('%d/%m/%Y') if service.created_at else '' }}</td>
+                                <td>
+                                    <strong>{{ service.equipment_name or 'No especificado' }}</strong>
+                                    {% if service.equipment_brand %}
+                                    <br><small class="text-muted">{{ service.equipment_brand }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ service.description[:50] }}{% if service.description|length > 50 %}...{% endif %}</td>
+                                <td>
+                                    {% set status_class = {
+                                        'Pendiente': 'warning',
+                                        'En Progreso': 'info', 
+                                        'Completado': 'success',
+                                        'Cancelado': 'danger'
+                                    } %}
+                                    <span class="badge bg-{{ status_class.get(service.status, 'secondary') }}">
+                                        {{ service.status }}
+                                    </span>
+                                </td>
+                                <td>{{ service.technician.username if service.technician else 'No asignado' }}</td>
+                                <td>
+                                    <a href="{{ url_for('service_view', service_id=service.id) }}" 
+                                       class="btn btn-sm btn-outline-info" title="Ver servicio">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-clipboard-list fa-2x text-muted mb-3"></i>
+                    <h5 class="text-muted">Sin servicios registrados</h5>
+                    <p class="text-muted">Este cliente aún no tiene servicios asociados</p>
+                    <a href="{{ url_for('service_new') }}?customer_id={{ customer.id }}" class="btn btn-soundlab-fuschia">
+                        <i class="fas fa-plus me-1"></i>Crear Primer Servicio
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

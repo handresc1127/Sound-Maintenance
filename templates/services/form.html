@@ -20,7 +20,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('service_create') if not service else url_for('service_update', id=service.id) }}" 
-                      id="service-form" class="needs-validation" novalidate>
+                      id="service-form" enctype="multipart/form-data">
                     
                     <!-- Equipment Information -->
                     <div class="card bg-soundlab-purple border-soundlab-fuschia mb-4">
@@ -90,9 +90,9 @@
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="accessories" class="form-label">Accesorios Incluidos</label>
-                                    <input type="text" class="form-control" id="accessories" name="accessories" 
-                                           value="{{ service.accessories if service and service.accessories else '' }}"
+                                    <label for="equipment_accessories" class="form-label">Accesorios Incluidos</label>
+                                    <input type="text" class="form-control" id="equipment_accessories" name="equipment_accessories" 
+                                           value="{{ service.equipment_accessories if service and service.equipment_accessories else '' }}"
                                            placeholder="Cables, fundas, manuales, etc.">
                                 </div>
                             </div>
@@ -136,7 +136,7 @@
                                         <div class="card bg-black border-secondary">
                                             <img src="/uploads/{{ evidence.filename }}" class="card-img-top" 
                                                  style="height: 150px; object-fit: cover;" 
-                                                 alt="Evidencia {{ evidence.evidence_type }}">>
+                                                 alt="Evidencia {{ evidence.evidence_type }}">
                                             <div class="card-body p-2">
                                                 <small class="text-muted">{{ evidence.evidence_type|title }}</small>
                                                 <p class="small mb-1">{{ evidence.description or 'Sin descripción' }}</p>
@@ -343,111 +343,43 @@
 
 {% endblock %}
 
-{% block scripts %}
+{% block extra_scripts %}
 <script>
 $(document).ready(function() {
-    // Form validation
-    $('#service-form').on('submit', function(e) {
-        if (!this.checkValidity()) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        $(this).addClass('was-validated');
-    });
-
-    // Status change handler
-    $('#status').on('change', function() {
-        var status = $(this).val();
-        
-        if (status === 'Completado' || status === 'Entregado') {
-            $('#diagnosis, #solution').attr('required', true);
-            if (status === 'Entregado') {
-                $('#final_cost').attr('required', true);
-            }
-        } else {
-            $('#diagnosis, #solution, #final_cost').removeAttr('required');
-        }
-    });
-
-    // Photo handling functionality
-    var photoFiles = [];
+    var form = $('#service-form');
+    var submitBtn = $('button[type="submit"]');
     
-    // Handle file input change
-    $('#photo_input').on('change', function(e) {
-        var files = Array.from(e.target.files);
-        handlePhotoFiles(files);
-    });
-
-    // Camera button functionality
-    $('#camera-btn').on('click', function() {
-        $('#photo_input').attr('capture', 'camera').click();
-    });
-
-    // Gallery button functionality
-    $('#gallery-btn').on('click', function() {
-        $('#photo_input').removeAttr('capture').click();
-    });
-
-    function handlePhotoFiles(files) {
-        files.forEach(function(file) {
-            if (file && file.type.startsWith('image/')) {
-                photoFiles.push(file);
-                displayPhotoPreview(file);
+    // Remove ALL event handlers that might interfere
+    form.off('submit');
+    submitBtn.off('click');
+    
+    // Simple validation and manual submission
+    submitBtn.on('click', function(e) {
+        e.preventDefault(); // Prevent default first
+        
+        // Manual validation of required fields
+        var valid = true;
+        var requiredFields = ['equipment_type', 'equipment_name', 'customer_id', 'service_type', 'description'];
+        
+        requiredFields.forEach(function(fieldName) {
+            var field = document.getElementById(fieldName);
+            if (field && !field.value.trim()) {
+                field.style.border = '2px solid red';
+                valid = false;
+            } else if (field) {
+                field.style.border = '';
             }
         });
-        updateFileInput();
-    }
-
-    function displayPhotoPreview(file) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            var previewHtml = `
-                <div class="col-md-3 mb-3" id="${photoId}">
-                    <div class="card bg-black border-secondary">
-                        <img src="${e.target.result}" class="card-img-top" 
-                             style="height: 150px; object-fit: cover;" 
-                             alt="Vista previa">
-                        <div class="card-body p-2">
-                            <small class="text-muted">Nueva foto</small>
-                            <button type="button" class="btn btn-outline-danger btn-sm mt-1" 
-                                    onclick="removePhotoPreview('${photoId}', '${file.name}')">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            $('#photo-preview-container').append(previewHtml);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function updateFileInput() {
-        var dt = new DataTransfer();
-        photoFiles.forEach(function(file) {
-            dt.items.add(file);
-        });
-        $('#photo_input')[0].files = dt.files;
-    }
-
-    // Make removePhotoPreview global
-    window.removePhotoPreview = function(photoId, fileName) {
-        $('#' + photoId).remove();
-        photoFiles = photoFiles.filter(function(file) {
-            return file.name !== fileName;
-        });
-        updateFileInput();
-    };
-
-    // Handle existing photo removal
-    window.removePhoto = function(evidenceId) {
-        if (confirm('¿Está seguro de que desea eliminar esta foto?')) {
-            // Here you would make an AJAX call to delete the photo from the server
-            // For now, just hide the photo
-            $('[onclick*="' + evidenceId + '"]').closest('.col-md-3').fadeOut();
+        
+        if (!valid) {
+            return false;
         }
-    };
+        
+        // Force submit the form
+        form[0].submit();
+        
+        return false;
+    });
 });
 </script>
 {% endblock %}

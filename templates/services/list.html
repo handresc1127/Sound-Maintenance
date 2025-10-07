@@ -184,19 +184,23 @@
 {% block scripts %}
 <script>
 $(document).ready(function() {
-    // Initialize DataTable
-    $('#services-table').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-        },
-        order: [[0, 'desc']],
-        pageLength: 25,
-        columnDefs: [
-            { orderable: false, targets: [6] },
-            { searchable: false, targets: [6] }
-        ],
-        responsive: true
-    });
+    // Verificar si DataTable ya está inicializada
+    if (!$.fn.DataTable.isDataTable('#services-table')) {
+        // Initialize DataTable solo si no está ya inicializada
+        $('#services-table').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            },
+            order: [[0, 'desc']],
+            pageLength: 25,
+            columnDefs: [
+                { orderable: false, targets: [6] },
+                { searchable: false, targets: [6] }
+            ],
+            responsive: true,
+            destroy: true // Permitir re-inicialización si es necesario
+        });
+    }
 });
 </script>
 {% endblock %}

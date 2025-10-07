@@ -156,17 +156,18 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-info" title="Ver detalles">
+                                        <a href="{{ url_for('inventory_view', item_id=item.id) }}" class="btn btn-outline-info" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-warning" title="Editar">
+                                        </a>
+                                        <a href="{{ url_for('inventory_edit', id=item.id) }}" class="btn btn-outline-warning" title="Editar">
                                             <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-success" title="Movimiento Stock">
+                                        </a>
+                                        <button type="button" class="btn btn-outline-success" title="Movimiento Stock"
+                                                onclick="openStockMovementModal({{ item.id }}, '{{ item.name }}', {{ item.stock }})">
                                             <i class="fas fa-exchange-alt"></i>
                                         </button>
                                         <button type="button" class="btn btn-outline-danger" title="Eliminar"
-                                                onclick="confirmDelete('¿Eliminar {{ item.name }}?')">
+                                                onclick="confirmDelete({{ item.id }}, '{{ item.name }}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -197,27 +198,31 @@
         <div class="modal-content bg-soundlab-purple">
             <div class="modal-header border-soundlab-fuschia">
                 <h5 class="modal-title">
-                    <i class="fas fa-exchange-alt me-2"></i>Movimiento de Stock
+                    <i class="fas fa-exchange-alt me-2"></i>Movimiento de Stock - <span id="itemName"></span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Stock actual: <strong><span id="currentStock">0</span></strong> unidades
+                </div>
                 <form id="stockMovementForm">
                     <div class="mb-3">
                         <label class="form-label">Tipo de Movimiento</label>
                         <select class="form-select" name="movement_type" required>
-                            <option value="entrada">Entrada</option>
-                            <option value="salida">Salida</option>
-                            <option value="ajuste">Ajuste</option>
+                            <option value="entrada">Entrada (Agregar al stock)</option>
+                            <option value="salida">Salida (Retirar del stock)</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Cantidad</label>
-                        <input type="number" class="form-control" name="quantity" required>
+                        <input type="number" class="form-control" name="quantity" min="1" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Notas</label>
-                        <textarea class="form-control" name="notes" rows="2"></textarea>
+                        <label class="form-label">Motivo/Notas</label>
+                        <textarea class="form-control" name="reason" rows="2" 
+                                  placeholder="Motivo del movimiento (opcional)"></textarea>
                     </div>
                 </form>
             </div>
@@ -235,4 +240,101 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+<script>
+$(document).ready(function() {
+    // Verificar si DataTable ya está inicializada
+    if (!$.fn.DataTable.isDataTable('.datatable')) {
+        // Inicializar DataTable solo si no está ya inicializada
+        $('.datatable').DataTable({
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/Spanish.json'
+            },
+            columnDefs: [
+                { orderable: false, targets: 'no-sort' }
+            ],
+            pageLength: 25,
+            responsive: true,
+            destroy: true // Permitir re-inicialización si es necesario
+        });
+    }
+});
+
+let currentItemId = null;
+
+function openStockMovementModal(itemId, itemName, currentStock) {
+    currentItemId = itemId;
+    document.getElementById('itemName').textContent = itemName;
+    document.getElementById('currentStock').textContent = currentStock;
+    
+    // Limpiar formulario
+    document.getElementById('stockMovementForm').reset();
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('stockMovementModal'));
+    modal.show();
+}
+
+function confirmDelete(itemId, itemName) {
+    if (confirm('¿Está seguro que desea eliminar el item "' + itemName + '"?\\n\\nEsta acción no se puede deshacer.')) {
+        // Crear formulario para enviar DELETE request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/inventory/' + itemId + '/delete';
+        
+        // Agregar token CSRF si existe
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Manejar envío del formulario de movimiento de stock
+document.addEventListener('DOMContentLoaded', function() {
+    const submitBtn = document.querySelector('#stockMovementModal .btn-soundlab-fuschia');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            const form = document.getElementById('stockMovementForm');
+            const formData = new FormData(form);
+            
+            if (currentItemId && formData.get('quantity')) {
+                // Crear formulario para envío
+                const submitForm = document.createElement('form');
+                submitForm.method = 'POST';
+                submitForm.action = '/inventory/' + currentItemId + '/stock-movement';
+                
+                // Agregar datos del formulario
+                for (let [key, value] of formData.entries()) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    submitForm.appendChild(input);
+                }
+                
+                // Agregar token CSRF si existe
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrf_token';
+                    csrfInput.value = csrfToken.getAttribute('content');
+                    submitForm.appendChild(csrfInput);
+                }
+                
+                document.body.appendChild(submitForm);
+                submitForm.submit();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -1,1 +1,2 @@
-instance/soundlab.db
+instance/*
+static/uploads/*

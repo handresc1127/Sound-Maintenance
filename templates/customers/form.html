@@ -19,7 +19,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('customer_create') if not customer else url_for('customer_update', id=customer.id) }}" 
+                <form method="POST" action="{{ url_for('customer_create') if not customer else url_for('customer_update', customer_id=customer.id) }}" 
                       id="customer-form" class="needs-validation" novalidate>
                     
                     <div class="row">

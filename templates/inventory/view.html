@@ -1,0 +1,270 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ item.name }} - Inventario - Soundlab{% endblock %}
+
+{% block breadcrumbs %}
+    {{ super() }}
+    <li class="breadcrumb-item"><a href="{{ url_for('inventory') }}">Inventario</a></li>
+    <li class="breadcrumb-item active">{{ item.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-soundlab-fuschia">
+                    <i class="fas fa-box me-2"></i>{{ item.name }}
+                </h1>
+                <p class="text-muted mb-0">Información detallada del item de inventario</p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-soundlab-purple me-2"
+                        onclick="openStockMovementModal({{ item.id }}, '{{ item.name }}', {{ item.stock }})">
+                    <i class="fas fa-exchange-alt me-1"></i>Movimiento Stock
+                </button>
+                <a href="{{ url_for('inventory_edit', id=item.id) }}" class="btn btn-outline-warning me-2">
+                    <i class="fas fa-edit me-1"></i>Editar Item
+                </a>
+                <a href="{{ url_for('inventory') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información del Item -->
+    <div class="col-lg-6 mb-4">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Información del Producto
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>ID:</strong></div>
+                    <div class="col-sm-8">{{ item.id }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Nombre:</strong></div>
+                    <div class="col-sm-8">{{ item.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Categoría:</strong></div>
+                    <div class="col-sm-8">
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-{{ 'wrench' if item.category == 'repuestos' else 'plug' if item.category == 'cables' else 'tools' }} me-1"></i>
+                            {{ item.category|title }}
+                        </span>
+                    </div>
+                </div>
+                {% if item.brand %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Marca:</strong></div>
+                    <div class="col-sm-8">{{ item.brand }}</div>
+                </div>
+                {% endif %}
+                {% if item.model %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Modelo:</strong></div>
+                    <div class="col-sm-8">{{ item.model }}</div>
+                </div>
+                {% endif %}
+                {% if item.description %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Descripción:</strong></div>
+                    <div class="col-sm-8">{{ item.description }}</div>
+                </div>
+                {% endif %}
+                {% if item.supplier %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Proveedor:</strong></div>
+                    <div class="col-sm-8">{{ item.supplier }}</div>
+                </div>
+                {% endif %}
+                {% if item.location %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Ubicación:</strong></div>
+                    <div class="col-sm-8">{{ item.location }}</div>
+                </div>
+                {% endif %}
+                {% if item.price %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Precio:</strong></div>
+                    <div class="col-sm-8">
+                        <strong class="text-success">${{ "{:,.0f}".format(item.price) }}</strong>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Registrado:</strong></div>
+                    <div class="col-sm-8">{{ item.created_at.strftime('%d/%m/%Y %H:%M') if item.created_at else '' }}</div>
+                </div>
+                {% if item.updated_at %}
+                <div class="row mb-0">
+                    <div class="col-sm-4"><strong>Actualizado:</strong></div>
+                    <div class="col-sm-8">{{ item.updated_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Información de Stock -->
+    <div class="col-lg-6 mb-4">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Información de Stock
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-6">
+                        <div class="p-3 border border-soundlab-purple rounded">
+                            <h2 class="text-soundlab-fuschia mb-1">{{ item.stock }}</h2>
+                            <small class="text-muted">Stock Actual</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 border border-soundlab-purple rounded">
+                            <h2 class="text-warning mb-1">{{ item.min_stock }}</h2>
+                            <small class="text-muted">Stock Mínimo</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado del Stock -->
+                <div class="text-center mb-4">
+                    <h6 class="mb-2">Estado del Stock</h6>
+                    {% if item.stock <= item.min_stock %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>¡STOCK CRÍTICO!</strong><br>
+                            Se necesita reposición urgente
+                        </div>
+                    {% elif item.stock <= item.min_stock * 2 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation me-2"></i>
+                            <strong>Stock Bajo</strong><br>
+                            Considere reabastecer pronto
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check me-2"></i>
+                            <strong>Stock Disponible</strong><br>
+                            Nivel de inventario adecuado
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-success"
+                            onclick="openStockMovementModal({{ item.id }}, '{{ item.name }}', {{ item.stock }})">
+                        <i class="fas fa-plus me-2"></i>Entrada de Stock
+                    </button>
+                    <button type="button" class="btn btn-outline-warning"
+                            onclick="openStockMovementModal({{ item.id }}, '{{ item.name }}', {{ item.stock }})">
+                        <i class="fas fa-minus me-2"></i>Salida de Stock
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para movimientos de stock -->
+<div class="modal fade" id="stockMovementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-soundlab-purple">
+            <div class="modal-header border-soundlab-fuschia">
+                <h5 class="modal-title">
+                    <i class="fas fa-exchange-alt me-2"></i>Movimiento de Stock - <span id="itemName"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Stock actual: <strong><span id="currentStock">0</span></strong> unidades
+                </div>
+                <form id="stockMovementForm">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Movimiento</label>
+                        <select class="form-select" name="movement_type" required>
+                            <option value="entrada">Entrada (Agregar al stock)</option>
+                            <option value="salida">Salida (Retirar del stock)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" name="quantity" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo/Notas</label>
+                        <textarea class="form-control" name="reason" rows="2" 
+                                  placeholder="Motivo del movimiento (opcional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-soundlab-fuschia">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-soundlab-fuschia" id="submitStockMovement">Registrar Movimiento</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentItemId = null;
+
+function openStockMovementModal(itemId, itemName, currentStock) {
+    currentItemId = itemId;
+    document.getElementById('itemName').textContent = itemName;
+    document.getElementById('currentStock').textContent = currentStock;
+    
+    // Limpiar formulario
+    document.getElementById('stockMovementForm').reset();
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('stockMovementModal'));
+    modal.show();
+}
+
+// Manejar envío del formulario de movimiento de stock
+document.addEventListener('DOMContentLoaded', function() {
+    const submitBtn = document.getElementById('submitStockMovement');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            const form = document.getElementById('stockMovementForm');
+            const formData = new FormData(form);
+            
+            if (currentItemId && formData.get('quantity')) {
+                // Crear formulario para envío
+                const submitForm = document.createElement('form');
+                submitForm.method = 'POST';
+                submitForm.action = '/inventory/' + currentItemId + '/stock-movement';
+                
+                // Agregar datos del formulario
+                for (let [key, value] of formData.entries()) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    submitForm.appendChild(input);
+                }
+                
+                document.body.appendChild(submitForm);
+                submitForm.submit();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
