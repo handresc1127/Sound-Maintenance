@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ 'Editar Cliente' if customer else 'Nuevo Cliente' }} - Soundlab{% endblock %}
+
+{% block breadcrumbs %}
+    {{ super() }}
+    <li class="breadcrumb-item"><a href="{{ url_for('customers') }}" class="text-soundlab-fuschia">Clientes</a></li>
+    <li class="breadcrumb-item active">{{ 'Editar Cliente' if customer else 'Nuevo Cliente' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-{{ 'edit' if customer else 'plus' }} me-2"></i>
+                    {{ 'Editar Cliente' if customer else 'Nuevo Cliente' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('customer_create') if not customer else url_for('customer_update', id=customer.id) }}" 
+                      id="customer-form" class="needs-validation" novalidate>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="name" class="form-label">
+                                <i class="fas fa-user me-1 text-soundlab-fuschia"></i>Nombre Completo *
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ customer.name if customer else '' }}" required>
+                            <div class="invalid-feedback">
+                                Por favor ingrese el nombre del cliente.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-1 text-soundlab-fuschia"></i>Email
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ customer.email if customer and customer.email else '' }}">
+                            <div class="invalid-feedback">
+                                Por favor ingrese un email válido.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone me-1 text-soundlab-fuschia"></i>Teléfono
+                            </label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ customer.phone if customer and customer.phone else '' }}"
+                                   placeholder="Ej: 3001234567">
+                            <div class="invalid-feedback">
+                                Por favor ingrese un teléfono válido.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="address" class="form-label">
+                                <i class="fas fa-map-marker-alt me-1 text-soundlab-fuschia"></i>Dirección
+                            </label>
+                            <textarea class="form-control" id="address" name="address" rows="2" 
+                                      placeholder="Dirección completa del cliente">{{ customer.address if customer and customer.address else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <label for="notes" class="form-label">
+                                <i class="fas fa-sticky-note me-1 text-soundlab-fuschia"></i>Notas Adicionales
+                            </label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Información adicional sobre el cliente, preferencias, etc.">{{ customer.notes if customer and customer.notes else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-soundlab-fuschia">
+                            <i class="fas fa-save me-1"></i>
+                            {{ 'Actualizar Cliente' if customer else 'Crear Cliente' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card bg-soundlab-purple border-soundlab-fuschia mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle me-2 text-soundlab-fuschia"></i>Información Importante
+                </h6>
+                <ul class="mb-0 small">
+                    <li>El <strong>nombre</strong> es el único campo obligatorio</li>
+                    <li>El <strong>email</strong> y <strong>teléfono</strong> son importantes para comunicación</li>
+                    <li>Use las <strong>notas</strong> para recordar detalles importantes del cliente</li>
+                    <li>Toda la información puede ser editada posteriormente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

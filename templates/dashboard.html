@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Soundlab{% endblock %}
+
+{% block breadcrumbs %}
+    {{ super() }}
+    <li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-soundlab-fuschia">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </h1>
+                <p class="text-muted mb-0">Panel de control principal - Soundlab la Casa del DJ</p>
+            </div>
+            <div class="text-end">
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    {{ moment().format('dddd, MMMM Do YYYY') }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas Principales -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-soundlab-purple border-soundlab-fuschia h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x text-soundlab-fuschia mb-3"></i>
+                <h3 class="text-light">{{ total_customers }}</h3>
+                <p class="text-muted mb-0">Clientes Registrados</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-soundlab-purple border-soundlab-fuschia h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-music fa-2x text-soundlab-fuschia mb-3"></i>
+                <h3 class="text-light">{{ total_equipment }}</h3>
+                <p class="text-muted mb-0">Equipos Registrados</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-soundlab-purple border-warning h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-tools fa-2x text-warning mb-3"></i>
+                <h3 class="text-light">{{ active_services }}</h3>
+                <p class="text-muted mb-0">Servicios Activos</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-soundlab-purple border-danger h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
+                <h3 class="text-light">{{ low_stock_items }}</h3>
+                <p class="text-muted mb-0">Stock Bajo</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Rápidos -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2 text-soundlab-fuschia"></i>Accesos Rápidos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('customer_new') }}" class="btn btn-outline-light w-100 py-3">
+                            <i class="fas fa-user-plus fa-2x d-block mb-2"></i>
+                            <strong>Nuevo Cliente</strong><br>
+                            <small class="text-muted">Registrar cliente</small>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <a href="{{ url_for('service_new') }}" class="btn btn-outline-warning w-100 py-3">
+                            <i class="fas fa-wrench fa-2x d-block mb-2"></i>
+                            <strong>Nuevo Servicio</strong><br>
+                            <small class="text-muted">Crear orden de trabajo</small>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <a href="{{ url_for('inventory_new') }}" class="btn btn-outline-info w-100 py-3">
+                            <i class="fas fa-plus-circle fa-2x d-block mb-2"></i>
+                            <strong>Agregar Inventario</strong><br>
+                            <small class="text-muted">Nuevo item stock</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Sistema -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card bg-soundlab-purple border-soundlab-fuschia">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Información del Sistema
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success me-2"></i>Sistema de gestión activo</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Base de datos conectada</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Módulos cargados correctamente</li>
+                    <li><i class="fas fa-user text-info me-2"></i>Usuario: {{ current_user.username }} ({{ current_user.role }})</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card bg-black border-soundlab-fuschia">
+            <div class="card-header bg-soundlab-purple">
+                <h6 class="mb-0">
+                    <i class="fas fa-music me-2 text-soundlab-fuschia"></i>Soundlab - La Casa del DJ
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">
+                    Sistema especializado en gestión de servicios para equipos de DJ:
+                </p>
+                <ul class="list-unstyled mb-0 small">
+                    <li><i class="fas fa-music text-soundlab-fuschia me-2"></i>Consolas y Controladores DJ</li>
+                    <li><i class="fas fa-lightbulb text-warning me-2"></i>Equipos de Iluminación</li>
+                    <li><i class="fas fa-volume-up text-info me-2"></i>Sistemas de Sonido</li>
+                    <li><i class="fas fa-cloud text-primary me-2"></i>Máquinas de Humo</li>
+                    <li><i class="fas fa-tools text-secondary me-2"></i>Accesorios y Repuestos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
